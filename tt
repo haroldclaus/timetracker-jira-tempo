@@ -1,0 +1,64 @@
+#!/usr/bin/env python3
+
+import argparse
+import random
+import string
+import csv
+import sys
+import pandas as pd
+import time,datetime
+
+from Timetracker.cli.timetracker import Timetracker
+
+# Create the parser and add arguments
+parser = argparse.ArgumentParser()
+parser.add_argument(dest='command', help="Main command you wish to execute [start|resume|remove|stop|ticket|list|comment|add|sub]")
+parser.add_argument('-d', '--Day', help = 'Format Y-m-d (Example: 2022-07-09). This will tell the script which CSV to use.')
+parser.add_argument('-v', '--verbose', help = 'Show (debug) info')
+
+# Parse and print the results
+args = parser.parse_args()
+command = args.command
+day = args.Day
+
+def getCurrentDay():
+    e = datetime.datetime.now()
+    s = "-"
+    arrDay = [str(e.year), '{:02d}'.format(e.month), '{:02d}'.format(e.day)]
+    day = s.join(arrDay)
+    return day
+
+if not day:
+    day = getCurrentDay()
+
+if command == "start":
+    Timetracker(day).startNewEntity()
+elif command == "resume":
+    Timetracker(day).resumeEntity()
+elif command == "remove":
+    Timetracker(day).removeEntity()
+elif command == "stop":
+    Timetracker(day).stopAllLogs()
+elif command == "ticket":
+    Timetracker(day).upsertTicketInEntity()
+elif command == "comment":
+    Timetracker(day).upsertCommentInEntity()
+elif command == "add":
+    Timetracker(day).addTimeFromEntity()
+elif command == "sub":
+    Timetracker(day).subtractTimeFromEntity()
+elif command == "list":
+    print("Getting list from " + day)
+    Timetracker(day).printList()
+elif command == "tempo-attr":
+    print("Getting attributes from Tempo")
+    Timetracker(day).getWorkLogPropertyDetails()
+elif command == "process":
+    print("Sending data to JIRA")
+    Timetracker(day).processEntities()
+elif command == "settings":
+    print("Setting up configuration")
+    Timetracker(day).settings()
+else:
+    entity = None
+    print("Command unknown. Try again.")
