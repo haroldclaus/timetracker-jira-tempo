@@ -48,7 +48,7 @@ elif command == "add":
 elif command == "sub":
     Timetracker(day).subtractTimeFromEntity()
 elif command == "list":
-    print("Getting list from " + day)
+    #print("Getting list from " + day)
     Timetracker(day).printList()
 elif command == "tempo-attr":
     print("Getting attributes from Tempo")

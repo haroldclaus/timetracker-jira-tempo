@@ -16,6 +16,7 @@ from requests.structures import CaseInsensitiveDict
 import json
 from datetime import datetime
 from typing import Union
+from tabulate import tabulate
 
 from Timetracker.helper.io import Io
 from Timetracker.objects.entity import Entity
@@ -60,14 +61,20 @@ class Timetracker:
         self.io.upsertSettingsJson(settings)
 
     def printList(self):
+        headers = ["ID", "Started", "Ticket", "Duraction", "Comment"]
         arrEntities = self.io.getEntityObjects()
         counter = 0
         totalTimeForTheDay = 0
         if not arrEntities:
             print('No entries found in the file ' + self.io.log_file)
+
+        #data = {}
+        data = []
+
         for entity in arrEntities:
+            arrEntity = []
             counter = counter + 1
-            strTicket = entity.get_ticket().ljust(18)
+            strTicket = entity.get_ticket().ljust(17)
             if entity.get_start() > 0 and entity.get_end() == 0:
                 duration = self.getCurrentTimestamp() - entity.get_start() + entity.get_time()
                 duration = self.getTimeStringBySeconds(duration)
@@ -79,14 +86,35 @@ class Timetracker:
             strMessage += ' - ' + datetime.fromtimestamp(entity.get_created_at()).strftime("%Y-%m-%d %H:%M:%S")
             strMessage += ' - ' + strTicket + ' - ' + str(duration)
 
+            status = '';
             if (int(entity.get_start()) > 0):
                 strMessage += ' - [RUNNING]'
+                status = 'running';
             if (int(entity.get_jira_id()) > 0):
                 strMessage += ' - [FINISHED]'
 
+            arrDataEntity = [
+                str(counter),
+                datetime.fromtimestamp(entity.get_created_at()).strftime("%Y-%m-%d %H:%M:%S"),
+                strTicket,
+                str(duration),
+                status,
+                str(entity.get_comment())
+            ]
+
             strMessage += ' - ' + str(entity.get_comment())
-            print(strMessage)
-        print('Total time for the day: ' + self.getTimeStringBySeconds(totalTimeForTheDay))
+            #print(strMessage)
+
+            data.append(arrDataEntity)
+
+        #print ("{:<3} {:<20} {:<17} {:<12} {:<50}".format('ID','Start','Ticket','Duration','Comment'))
+        #for k, v in data.items():
+        #    lang, perc, change, comment = v
+        #    print ("{:<3} {:<20} {:<17} {:<12} {:<50}".format(k, lang, perc, change, comment))
+        #print('--------------------------------------')
+        #print('Current day: ' + self.getTimeStringBySeconds(totalTimeForTheDay))
+
+        print (tabulate(data, headers=["ID", "Start", "Ticket", "Duration", "Status", "Comment"], tablefmt="simple", maxcolwidths=[None, None, None, None, None, 100]))
 
     def getCurrentTimestamp(self) -> int:
         currentTime = int(time.time())
